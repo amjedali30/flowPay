@@ -180,6 +180,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
           ];
 
     return DropdownButtonFormField<TransactionCategory>(
+      // ignore: deprecated_member_use
       value: _category,
       decoration: InputDecoration(
         labelText: 'Category',
