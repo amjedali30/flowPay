@@ -12,3 +12,26 @@ jobs:
       - run: flutter pub get
       - run: flutter analyze # Checks for blue/red squiggly lines in code
       - run: flutter test # Runs your unit tests
+
+  # Job 2: Create the APK
+  build-apk:
+    needs: check-code # This job only starts if check-code passes green!
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+      - run: flutter pub get
+      
+      # Build the Release APK
+      - name: Build APK
+        run: flutter build apk --release --split-per-abi
+
+      # This "Upload" step makes the APK available for download
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: flutter-apk-release
+          path: build/app/outputs/flutter-apk/*.apk
