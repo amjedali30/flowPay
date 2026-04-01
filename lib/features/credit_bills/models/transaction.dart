@@ -43,8 +43,10 @@ enum PartyType { customer, supplier }
 class TransactionModel with _$TransactionModel {
   const factory TransactionModel({
     required String id,
-    @JsonKey(fromJson: _typeFromJson) required TransactionType type,
-    @JsonKey(fromJson: _categoryFromJson) required TransactionCategory category,
+    // @JsonKey(fromJson: _typeFromJson) required TransactionType type,
+    // @JsonKey(fromJson: _categoryFromJson) required TransactionCategory category,
+    @TransactionTypeConverter() required TransactionType type,
+    @TransactionCategoryConverter() required TransactionCategory category,
     required double amount,
     required PaymentType paymentType,
     String? partyId,
@@ -60,4 +62,26 @@ class TransactionModel with _$TransactionModel {
 
   factory TransactionModel.fromJson(Map<String, dynamic> json) =>
       _$TransactionModelFromJson(json);
+}
+
+class TransactionTypeConverter
+    implements JsonConverter<TransactionType, dynamic> {
+  const TransactionTypeConverter();
+
+  @override
+  TransactionType fromJson(dynamic json) => _typeFromJson(json);
+
+  @override
+  dynamic toJson(TransactionType object) => object.name;
+}
+
+class TransactionCategoryConverter
+    implements JsonConverter<TransactionCategory, dynamic> {
+  const TransactionCategoryConverter();
+
+  @override
+  TransactionCategory fromJson(dynamic json) => _categoryFromJson(json);
+
+  @override
+  dynamic toJson(TransactionCategory object) => object.name;
 }

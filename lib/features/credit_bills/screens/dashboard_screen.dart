@@ -1,7 +1,7 @@
+import 'package:flow_pay/features/credit_bills/screens/transaction_list_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/transaction_provider.dart';
-import 'transaction_list_screen.dart';
 import 'customer_list_screen.dart';
 import 'supplier_list_screen.dart';
 import 'add_transaction_screen.dart';
@@ -40,14 +40,16 @@ class DashboardScreen extends StatelessWidget {
                     const SizedBox(height: 24),
                     const Text(
                       'Quick Actions',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 16),
                     _buildQuickActions(context),
                     const SizedBox(height: 32),
                     const Text(
                       'Today\'s Totals',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 16),
                     _buildTotalsCards(context, txProvider),
@@ -101,8 +103,10 @@ class DashboardScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _buildBalanceItem('Cash', txProvider.cashBalance, Icons.payments),
-              _buildBalanceItem('Bank', txProvider.bankBalance, Icons.account_balance),
-              _buildBalanceItem('UPI', txProvider.upiBalance, Icons.qr_code_scanner),
+              _buildBalanceItem(
+                  'Bank', txProvider.bankBalance, Icons.account_balance),
+              _buildBalanceItem(
+                  'UPI', txProvider.upiBalance, Icons.qr_code_scanner),
             ],
           ),
         ],
@@ -141,16 +145,22 @@ class DashboardScreen extends StatelessWidget {
       crossAxisSpacing: 16,
       childAspectRatio: 0.8,
       children: [
-        _buildActionIcon(context, 'Add Entry', Icons.add_circle_outline, Colors.teal, const AddTransactionScreen()),
-        _buildActionIcon(context, 'History', Icons.history, Colors.indigo, const TransactionListScreen()),
-        _buildActionIcon(context, 'Customers', Icons.people, Colors.orange, const CustomerListScreen()),
-        _buildActionIcon(context, 'Suppliers', Icons.local_shipping, Colors.purple, const SupplierListScreen()),
-        _buildActionIcon(context, 'Reports', Icons.bar_chart, Colors.red, const ReportsScreen()),
+        _buildActionIcon(context, 'Add Entry', Icons.add_circle_outline,
+            Colors.teal, const AddTransactionScreen()),
+        _buildActionIcon(context, 'History', Icons.history, Colors.indigo,
+            const TransactionListScreen()),
+        _buildActionIcon(context, 'Customers', Icons.people, Colors.orange,
+            const CustomerListScreen()),
+        _buildActionIcon(context, 'Suppliers', Icons.local_shipping,
+            Colors.purple, const SupplierListScreen()),
+        _buildActionIcon(context, 'Reports', Icons.bar_chart, Colors.red,
+            const ReportsScreen()),
       ],
     );
   }
 
-  Widget _buildActionIcon(BuildContext context, String label, IconData icon, Color color, Widget? screen) {
+  Widget _buildActionIcon(BuildContext context, String label, IconData icon,
+      Color color, Widget? screen) {
     return GestureDetector(
       onTap: () {
         if (screen != null) {
@@ -162,7 +172,7 @@ class DashboardScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Icon(icon, color: color, size: 24),
@@ -178,7 +188,8 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTotalsCards(BuildContext context, TransactionProvider txProvider) {
+  Widget _buildTotalsCards(
+      BuildContext context, TransactionProvider txProvider) {
     return Column(
       children: [
         _buildSummaryCard(
@@ -191,7 +202,8 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSummaryCard(String label, String amount, IconData icon, Color color) {
+  Widget _buildSummaryCard(
+      String label, String amount, IconData icon, Color color) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -199,7 +211,7 @@ class DashboardScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -210,7 +222,7 @@ class DashboardScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: color),

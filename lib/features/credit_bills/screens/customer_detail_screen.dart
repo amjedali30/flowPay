@@ -13,7 +13,9 @@ class CustomerDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final txProvider = context.watch<TransactionProvider>();
-    final customerTransactions = txProvider.transactions.where((tx) => tx.partyId == customer.id).toList()
+    final customerTransactions = txProvider.transactions
+        .where((tx) => tx.partyId == customer.id)
+        .toList()
       ..sort((a, b) => b.date.compareTo(a.date));
 
     return Scaffold(
@@ -36,12 +38,14 @@ class CustomerDetailScreen extends StatelessWidget {
           ),
           Expanded(
             child: customerTransactions.isEmpty
-                ? const Center(child: Text('No transactions found for this customer.'))
+                ? const Center(
+                    child: Text('No transactions found for this customer.'))
                 : ListView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     itemCount: customerTransactions.length,
                     itemBuilder: (context, index) {
-                      return _buildTransactionTile(context, customerTransactions[index]);
+                      return _buildTransactionTile(
+                          context, customerTransactions[index]);
                     },
                   ),
           ),
@@ -51,7 +55,8 @@ class CustomerDetailScreen extends StatelessWidget {
         onPressed: () => Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => const AddTransactionScreen(initialType: TransactionType.IN),
+            builder: (_) =>
+                const AddTransactionScreen(initialType: TransactionType.IN),
           ),
         ),
         backgroundColor: Colors.teal.shade700,
@@ -70,11 +75,15 @@ class CustomerDetailScreen extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Total Balance Receivable', style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+              Text('Total Balance Receivable',
+                  style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
               const SizedBox(height: 4),
               Text(
                 '₹${customer.balance.toStringAsFixed(2)}',
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.orange),
+                style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.orange),
               ),
             ],
           ),
@@ -82,13 +91,14 @@ class CustomerDetailScreen extends StatelessWidget {
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => const AddTransactionScreen(initialType: TransactionType.IN),
+                builder: (_) =>
+                    const AddTransactionScreen(initialType: TransactionType.IN),
               ),
             ),
             icon: const Icon(Icons.payment),
             label: const Text('Receive Payment'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.orange.shade100, 
+              backgroundColor: Colors.orange.shade100,
               foregroundColor: Colors.orange.shade900,
               elevation: 0,
             ),
@@ -101,7 +111,7 @@ class CustomerDetailScreen extends StatelessWidget {
   Widget _buildTransactionTile(BuildContext context, TransactionModel tx) {
     final bool isSale = tx.category == TransactionCategory.sale;
     final color = isSale ? Colors.orange : Colors.green;
-    
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 0,
@@ -112,10 +122,14 @@ class CustomerDetailScreen extends StatelessWidget {
       child: ListTile(
         leading: Container(
           padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
-          child: Icon(isSale ? Icons.shopping_basket : Icons.payment, color: color, size: 20),
+          decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12)),
+          child: Icon(isSale ? Icons.shopping_basket : Icons.payment,
+              color: color, size: 20),
         ),
-        title: Text(tx.category.name.replaceAll('_', ' ').toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+        title: Text(tx.category.name.replaceAll('_', ' ').toUpperCase(),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
         subtitle: Text(
           '${tx.date.toString().substring(0, 10)} - ${tx.paymentType.name.toUpperCase()}',
           style: TextStyle(color: Colors.grey.shade600, fontSize: 11),
@@ -131,7 +145,10 @@ class CustomerDetailScreen extends StatelessWidget {
             if (tx.balanceAmount > 0)
               Text(
                 'Unpaid: ₹${tx.balanceAmount.toStringAsFixed(1)}',
-                style: const TextStyle(color: Colors.red, fontSize: 10, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                    color: Colors.red,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold),
               ),
           ],
         ),

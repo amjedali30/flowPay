@@ -13,7 +13,9 @@ class SupplierDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final txProvider = context.watch<TransactionProvider>();
-    final supplierTransactions = txProvider.transactions.where((tx) => tx.partyId == supplier.id).toList()
+    final supplierTransactions = txProvider.transactions
+        .where((tx) => tx.partyId == supplier.id)
+        .toList()
       ..sort((a, b) => b.date.compareTo(a.date));
 
     return Scaffold(
@@ -36,12 +38,14 @@ class SupplierDetailScreen extends StatelessWidget {
           ),
           Expanded(
             child: supplierTransactions.isEmpty
-                ? const Center(child: Text('No transactions found for this supplier.'))
+                ? const Center(
+                    child: Text('No transactions found for this supplier.'))
                 : ListView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     itemCount: supplierTransactions.length,
                     itemBuilder: (context, index) {
-                      return _buildTransactionTile(context, supplierTransactions[index]);
+                      return _buildTransactionTile(
+                          context, supplierTransactions[index]);
                     },
                   ),
           ),
@@ -51,7 +55,8 @@ class SupplierDetailScreen extends StatelessWidget {
         onPressed: () => Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => const AddTransactionScreen(initialType: TransactionType.OUT),
+            builder: (_) =>
+                const AddTransactionScreen(initialType: TransactionType.OUT),
           ),
         ),
         backgroundColor: Colors.teal.shade700,
@@ -70,11 +75,15 @@ class SupplierDetailScreen extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Total Balance Payable', style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+              Text('Total Balance Payable',
+                  style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
               const SizedBox(height: 4),
               Text(
                 '₹${supplier.balance.toStringAsFixed(2)}',
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.red),
+                style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red),
               ),
             ],
           ),
@@ -82,13 +91,14 @@ class SupplierDetailScreen extends StatelessWidget {
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => const AddTransactionScreen(initialType: TransactionType.OUT),
+                builder: (_) => const AddTransactionScreen(
+                    initialType: TransactionType.OUT),
               ),
             ),
             icon: const Icon(Icons.payment),
             label: const Text('Pay Supplier'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red.shade100, 
+              backgroundColor: Colors.red.shade100,
               foregroundColor: Colors.red.shade900,
               elevation: 0,
             ),
@@ -101,7 +111,7 @@ class SupplierDetailScreen extends StatelessWidget {
   Widget _buildTransactionTile(BuildContext context, TransactionModel tx) {
     final bool isPurchase = tx.category == TransactionCategory.purchase;
     final color = isPurchase ? Colors.blue : Colors.red;
-    
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 0,
@@ -112,10 +122,14 @@ class SupplierDetailScreen extends StatelessWidget {
       child: ListTile(
         leading: Container(
           padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
-          child: Icon(isPurchase ? Icons.shopping_bag : Icons.payment, color: color, size: 20),
+          decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12)),
+          child: Icon(isPurchase ? Icons.shopping_bag : Icons.payment,
+              color: color, size: 20),
         ),
-        title: Text(tx.category.name.replaceAll('_', ' ').toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+        title: Text(tx.category.name.replaceAll('_', ' ').toUpperCase(),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
         subtitle: Text(
           '${tx.date.toString().substring(0, 10)} - ${tx.paymentType.name.toUpperCase()}',
           style: TextStyle(color: Colors.grey.shade600, fontSize: 11),
@@ -131,7 +145,10 @@ class SupplierDetailScreen extends StatelessWidget {
             if (tx.balanceAmount > 0)
               Text(
                 'Balance: ₹${tx.balanceAmount.toStringAsFixed(1)}',
-                style: const TextStyle(color: Colors.orange, fontSize: 10, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                    color: Colors.orange,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold),
               ),
           ],
         ),

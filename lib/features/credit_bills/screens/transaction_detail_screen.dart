@@ -12,8 +12,9 @@ class TransactionDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = transaction.type == TransactionType.IN ? Colors.green : Colors.red;
-    
+    final color =
+        transaction.type == TransactionType.IN ? Colors.green : Colors.red;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFB),
       appBar: AppBar(
@@ -25,7 +26,8 @@ class TransactionDetailScreen extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => AddTransactionScreen(existingTransaction: transaction),
+                  builder: (_) =>
+                      AddTransactionScreen(existingTransaction: transaction),
                 ),
               );
             },
@@ -55,14 +57,14 @@ class TransactionDetailScreen extends StatelessWidget {
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [color.withOpacity(0.8), color],
+          colors: [color.withValues(alpha: 0.8), color],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.3),
+            color: color.withValues(alpha: 0.3),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -72,24 +74,31 @@ class TransactionDetailScreen extends StatelessWidget {
         children: [
           Text(
             transaction.category.name.replaceAll('_', ' ').toUpperCase(),
-            style: const TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.bold),
+            style: const TextStyle(
+                color: Colors.white70,
+                fontSize: 14,
+                fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
           Text(
             '₹${transaction.paidAmount.toStringAsFixed(2)}',
-            style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold),
+            style: const TextStyle(
+                color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold),
           ),
           if (transaction.balanceAmount > 0) ...[
             const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
                 'Balance: ₹${transaction.balanceAmount.toStringAsFixed(2)}',
-                style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600),
               ),
             ),
           ],
@@ -106,7 +115,7 @@ class TransactionDetailScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.5),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -114,17 +123,26 @@ class TransactionDetailScreen extends StatelessWidget {
       ),
       child: Column(
         children: [
-          _buildDetailRow(Icons.calendar_today, 'Date', DateFormat('MMM d, yyyy - hh:mm a').format(transaction.date)),
+          _buildDetailRow(Icons.calendar_today, 'Date',
+              DateFormat('MMM d, yyyy - hh:mm a').format(transaction.date)),
           const Divider(height: 32),
-          _buildDetailRow(Icons.payment, 'Payment Mode', transaction.paymentType.name.toUpperCase()),
+          _buildDetailRow(Icons.payment, 'Payment Mode',
+              transaction.paymentType.name.toUpperCase()),
           const Divider(height: 32),
           if (transaction.partyId != null) ...[
-            _buildDetailRow(Icons.person, 'Party', transaction.partyId!.substring(0, 8)),
+            _buildDetailRow(
+                Icons.person, 'Party', transaction.partyId!.substring(0, 8)),
             const Divider(height: 32),
           ],
-          _buildDetailRow(Icons.note, 'Note', (transaction.note ?? '').isEmpty ? 'No notes added' : transaction.note!),
+          _buildDetailRow(
+              Icons.note,
+              'Note',
+              (transaction.note ?? '').isEmpty
+                  ? 'No notes added'
+                  : transaction.note!),
           const Divider(height: 32),
-          _buildDetailRow(Icons.access_time, 'Created At', DateFormat('MMM d, yyyy').format(transaction.createdAt)),
+          _buildDetailRow(Icons.access_time, 'Created At',
+              DateFormat('MMM d, yyyy').format(transaction.createdAt)),
         ],
       ),
     );
@@ -163,13 +181,19 @@ class TransactionDetailScreen extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Transaction?'),
-        content: const Text('This action cannot be undone and will revert balance updates.'),
+        content: const Text(
+            'This action cannot be undone and will revert balance updates.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel')),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red, foregroundColor: Colors.white),
             onPressed: () async {
-              await context.read<TransactionProvider>().deleteTransaction(transaction);
+              await context
+                  .read<TransactionProvider>()
+                  .deleteTransaction(transaction);
               if (context.mounted) {
                 Navigator.pop(context); // Close dialog
                 Navigator.pop(context); // Close details screen

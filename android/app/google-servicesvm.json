@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "979971206363",
+    "firebase_url": "https://villege-mart-default-rtdb.firebaseio.com",
+    "project_id": "villege-mart",
+    "storage_bucket": "villege-mart.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:979971206363:android:7b52b6fd7bd8453fea30fe",
+        "android_client_info": {
+          "package_name": "com.example.flow_pay"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBII0ZTVq1v_ThSLnKGtHhIlbRqjxcihdg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:979971206363:android:f57166596feffc65ea30fe",
+        "android_client_info": {
+          "package_name": "com.example.villege_mart"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBII0ZTVq1v_ThSLnKGtHhIlbRqjxcihdg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

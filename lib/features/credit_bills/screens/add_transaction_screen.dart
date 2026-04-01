@@ -373,8 +373,9 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
           spacing: 8,
           children: PaymentType.values.map((type) {
             bool isCredit = type == PaymentType.credit;
-            if (isCredit && !_categoryRequiresParty())
+            if (isCredit && !_categoryRequiresParty()) {
               return const SizedBox.shrink();
+            }
 
             return ChoiceChip(
               label: Text(type.name.toUpperCase()),
@@ -504,7 +505,6 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
         Navigator.pop(context);
       }
     } catch (e) {
-      print(e);
       if (mounted) {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text('Error: $e')));

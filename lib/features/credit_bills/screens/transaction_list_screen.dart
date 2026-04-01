@@ -18,14 +18,20 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<TransactionProvider>();
-    final filteredTx = provider.transactions.where((tx) =>
-      tx.date.year == _selectedDate.year &&
-      tx.date.month == _selectedDate.month &&
-      tx.date.day == _selectedDate.day).toList()
-      ..sort((a,b) => b.date.compareTo(a.date));
+    final filteredTx = provider.transactions
+        .where((tx) =>
+            tx.date.year == _selectedDate.year &&
+            tx.date.month == _selectedDate.month &&
+            tx.date.day == _selectedDate.day)
+        .toList()
+      ..sort((a, b) => b.date.compareTo(a.date));
 
-    double totalIn = filteredTx.where((tx) => tx.type == TransactionType.IN).fold(0, (sum, tx) => sum + tx.paidAmount);
-    double totalOut = filteredTx.where((tx) => tx.type == TransactionType.OUT).fold(0, (sum, tx) => sum + tx.paidAmount);
+    double totalIn = filteredTx
+        .where((tx) => tx.type == TransactionType.IN)
+        .fold(0, (sum, tx) => sum + tx.paidAmount);
+    double totalOut = filteredTx
+        .where((tx) => tx.type == TransactionType.OUT)
+        .fold(0, (sum, tx) => sum + tx.paidAmount);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFB),
@@ -65,7 +71,8 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
           DateFormat('EEEE, MMM d, y').format(_selectedDate),
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
-        trailing: const Icon(Icons.calendar_today, size: 20, color: Colors.teal),
+        trailing:
+            const Icon(Icons.calendar_today, size: 20, color: Colors.teal),
         onTap: () async {
           final date = await showDatePicker(
             context: context,
@@ -98,16 +105,24 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.05),
+          color: color.withValues(alpha: 0.5),
+
+          //  color.withOpacity(0.05),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withOpacity(0.1)),
+          border: Border.all(
+            color: color.withValues(alpha: 0.5),
+          ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(label, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w600)),
+            Text(label,
+                style: TextStyle(
+                    color: color, fontSize: 11, fontWeight: FontWeight.w600)),
             const SizedBox(height: 4),
-            Text('₹${amount.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            Text('₹${amount.toStringAsFixed(2)}',
+                style:
+                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
           ],
         ),
       ),
@@ -120,13 +135,26 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
 
     IconData icon;
     switch (tx.category) {
-      case TransactionCategory.sale: icon = Icons.receipt_long; break;
-      case TransactionCategory.purchase: icon = Icons.shopping_basket; break;
-      case TransactionCategory.payment_received: icon = Icons.call_received; break;
-      case TransactionCategory.payment_paid: icon = Icons.call_made; break;
-      case TransactionCategory.expense: icon = Icons.outbox; break;
-      case TransactionCategory.salary: icon = Icons.monetization_on; break;
-      default: icon = Icons.swap_horiz;
+      case TransactionCategory.sale:
+        icon = Icons.receipt_long;
+        break;
+      case TransactionCategory.purchase:
+        icon = Icons.shopping_basket;
+        break;
+      case TransactionCategory.payment_received:
+        icon = Icons.call_received;
+        break;
+      case TransactionCategory.payment_paid:
+        icon = Icons.call_made;
+        break;
+      case TransactionCategory.expense:
+        icon = Icons.outbox;
+        break;
+      case TransactionCategory.salary:
+        icon = Icons.monetization_on;
+        break;
+      default:
+        icon = Icons.swap_horiz;
     }
 
     return Card(
@@ -141,7 +169,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
         leading: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.5),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(icon, color: color, size: 22),
@@ -151,12 +179,16 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
             Expanded(
               child: Text(
                 tx.category.name.replaceAll('_', ' ').toUpperCase(),
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                style:
+                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
               ),
             ),
             Text(
               tx.paymentType.name.toUpperCase(),
-              style: TextStyle(color: Colors.grey.shade500, fontSize: 10, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                  color: Colors.grey.shade500,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -174,7 +206,10 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
               const SizedBox(height: 2),
               Text(
                 'Party: ${tx.partyId!.substring(0, 8)}',
-                style: const TextStyle(color: Colors.teal, fontSize: 11, fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                    color: Colors.teal,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600),
               ),
             ],
           ],
@@ -194,7 +229,10 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
             if (tx.balanceAmount > 0)
               Text(
                 'Bal: ₹${tx.balanceAmount.toStringAsFixed(1)}',
-                style: const TextStyle(color: Colors.orange, fontSize: 10, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                    color: Colors.orange,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold),
               ),
           ],
         ),
@@ -209,5 +247,4 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
       ),
     );
   }
-
 }
