@@ -1,0 +1,14 @@
+name: Flutter Check
+on: [push] # This triggers the script every time you push code
+
+jobs:
+  check-code:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4 # Gets your code from the repo
+      - uses: subosito/flutter-action@v2 # Sets up Flutter on GitHub's server
+        with:
+          channel: 'stable'
+      - run: flutter pub get
+      - run: flutter analyze # Checks for blue/red squiggly lines in code
+      - run: flutter test # Runs your unit tests
