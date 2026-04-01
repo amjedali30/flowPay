@@ -1,30 +1,69 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
 
 import 'package:flow_pay/main.dart';
+import 'package:flow_pay/features/credit_bills/providers/transaction_provider.dart';
+import 'package:flow_pay/features/credit_bills/providers/customer_provider.dart';
+import 'package:flow_pay/features/credit_bills/providers/supplier_provider.dart';
+import 'package:flow_pay/features/credit_bills/providers/settings_provider.dart';
+import 'package:flow_pay/features/credit_bills/screens/dashboard_screen.dart';
+import 'package:flow_pay/features/credit_bills/repositories/transaction_repository.dart';
+import 'package:flow_pay/features/credit_bills/repositories/customer_repository.dart';
+import 'package:flow_pay/features/credit_bills/repositories/supplier_repository.dart';
+import 'package:flow_pay/features/credit_bills/models/transaction.dart';
+import 'package:flow_pay/features/credit_bills/models/customer.dart';
+import 'package:flow_pay/features/credit_bills/models/supplier.dart';
+
+class MockTransactionRepository implements TransactionRepository {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  Stream<List<TransactionModel>> getAllTransactions() => Stream.value([]);
+  
+  @override
+  Stream<List<TransactionModel>> getTransactionsByDateRange(DateTime start, DateTime end) => Stream.value([]);
+  
+  @override
+  Stream<List<TransactionModel>> getTransactionsByParty(String partyId) => Stream.value([]);
+}
+
+class MockCustomerRepository implements CustomerRepository {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  Stream<List<Customer>> getCustomers() => Stream.value([]);
+}
+
+class MockSupplierRepository implements SupplierRepository {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  Stream<List<Supplier>> getSuppliers() => Stream.value([]);
+}
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('App loads DashboardScreen', (WidgetTester tester) async {
+    final mockTxRepo = MockTransactionRepository();
+    final mockCustRepo = MockCustomerRepository();
+    final mockSuppRepo = MockSupplierRepository();
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => SettingsProvider()..init()),
+          ChangeNotifierProvider(create: (_) => TransactionProvider(mockTxRepo)..init()),
+          ChangeNotifierProvider(create: (_) => CustomerProvider(mockCustRepo)..init()),
+          ChangeNotifierProvider(create: (_) => SupplierProvider(mockSuppRepo)..init()),
+        ],
+        child: const MyApp(),
+      ),
+    );
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    await tester.pumpAndSettle();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.byType(DashboardScreen), findsOneWidget);
   });
 }
