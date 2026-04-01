@@ -1,0 +1,2 @@
+/Users/amjadali/Developer/Project/flow_pay/android/app/.cxx/RelWithDebInfo/3g3v564c/x86/CMakeFiles/edit_cache.dir
+/Users/amjadali/Developer/Project/flow_pay/android/app/.cxx/RelWithDebInfo/3g3v564c/x86/CMakeFiles/rebuild_cache.dir

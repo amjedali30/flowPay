@@ -1,0 +1,20 @@
+{
+  "buildFiles": [
+    "/Users/amjadali/Developer/flutter/packages/flutter_tools/gradle/src/main/groovy/CMakeLists.txt"
+  ],
+  "cleanCommandsComponents": [
+    [
+      "/Users/amjadali/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+      "-C",
+      "/Users/amjadali/Developer/Project/flow_pay/android/app/.cxx/Debug/28552v6b/x86",
+      "clean"
+    ]
+  ],
+  "buildTargetsCommandComponents": [
+    "/Users/amjadali/Library/Android/sdk/cmake/3.22.1/bin/ninja",
+    "-C",
+    "/Users/amjadali/Developer/Project/flow_pay/android/app/.cxx/Debug/28552v6b/x86",
+    "{LIST_OF_TARGETS_TO_BUILD}"
+  ],
+  "libraries": {}
+}
