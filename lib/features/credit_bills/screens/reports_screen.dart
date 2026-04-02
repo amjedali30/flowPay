@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 import '../providers/transaction_provider.dart';
 import '../providers/customer_provider.dart';
 import '../providers/supplier_provider.dart';
+import 'customer_list_screen.dart';
+import 'supplier_list_screen.dart';
 
 class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key});
@@ -23,8 +25,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
     final supplierProvider = context.watch<SupplierProvider>();
 
     final report = txProvider.getMonthlyReport(_selectedMonth, _selectedYear);
-    final totalReceivable = customerProvider.customers.fold(0.0, (sum, c) => sum + c.balance);
-    final totalPayable = supplierProvider.suppliers.fold(0.0, (sum, s) => sum + s.balance);
+    final totalReceivable =
+        customerProvider.customers.fold(0.0, (sum, c) => sum + c.balance);
+    print(supplierProvider.suppliers.length);
+    final totalPayable =
+        supplierProvider.suppliers.fold(0.0, (sum, s) => sum + s.balance);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFB),
@@ -55,7 +60,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
   Widget _buildMonthPicker() {
     return Card(
       elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: Colors.grey.shade200)),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: Colors.grey.shade200)),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: Row(
@@ -99,13 +106,16 @@ class _ReportsScreenState extends State<ReportsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Monthly Summary', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        const Text('Monthly Summary',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         const SizedBox(height: 16),
         Row(
           children: [
-            _buildStatCard('Total Income', '₹${income.toStringAsFixed(1)}', Colors.green, Icons.trending_up),
+            _buildStatCard('Total Income', '₹${income.toStringAsFixed(1)}',
+                Colors.green, Icons.trending_up),
             const SizedBox(width: 16),
-            _buildStatCard('Total Expense', '₹${expense.toStringAsFixed(1)}', Colors.red, Icons.trending_down),
+            _buildStatCard('Total Expense', '₹${expense.toStringAsFixed(1)}',
+                Colors.red, Icons.trending_down),
           ],
         ),
         const SizedBox(height: 16),
@@ -119,11 +129,14 @@ class _ReportsScreenState extends State<ReportsScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Net Profit/Loss', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              const Text('Net Profit/Loss',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               Text(
                 '₹${(income - expense).toStringAsFixed(1)}',
                 style: TextStyle(
-                  color: (income - expense) >= 0 ? Colors.green.shade800 : Colors.red.shade800,
+                  color: (income - expense) >= 0
+                      ? Colors.green.shade800
+                      : Colors.red.shade800,
                   fontWeight: FontWeight.bold,
                   fontSize: 20,
                 ),
@@ -135,7 +148,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
     );
   }
 
-  Widget _buildStatCard(String label, String amount, Color color, IconData icon) {
+  Widget _buildStatCard(
+      String label, String amount, Color color, IconData icon) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(16),
@@ -149,9 +163,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
           children: [
             Icon(icon, color: color, size: 24),
             const SizedBox(height: 12),
-            Text(label, style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+            Text(label,
+                style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
             const SizedBox(height: 4),
-            Text(amount, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            Text(amount,
+                style:
+                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
           ],
         ),
       ),
@@ -166,7 +183,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Payment Mode Breakdown', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        const Text('Payment Mode Breakdown',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         const SizedBox(height: 16),
         _buildPaymentRow('Cash Flow', cash, Colors.orange),
         const SizedBox(height: 12),
@@ -187,11 +205,15 @@ class _ReportsScreenState extends State<ReportsScreen> {
       ),
       child: Row(
         children: [
-          Container(height: 12, width: 12, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+          Container(
+              height: 12,
+              width: 12,
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
           const SizedBox(width: 12),
           Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
           const Spacer(),
-          Text('₹${amount.toStringAsFixed(1)}', style: const TextStyle(fontWeight: FontWeight.bold)),
+          Text('₹${amount.toStringAsFixed(1)}',
+              style: const TextStyle(fontWeight: FontWeight.bold)),
         ],
       ),
     );
@@ -201,19 +223,34 @@ class _ReportsScreenState extends State<ReportsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Outstanding Balances', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        const Text('Outstanding Balances',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         const SizedBox(height: 16),
         Container(
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            gradient: LinearGradient(colors: [Colors.teal.shade700, Colors.teal.shade900]),
+            gradient: LinearGradient(
+                colors: [Colors.teal.shade700, Colors.teal.shade900]),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Column(
             children: [
-              _buildBalanceRow('Total Receivable (Customers)', receivable, Colors.green.shade200),
+              _buildBalanceRow('Total Receivable (Customers)', receivable,
+                  Colors.green.shade200, () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const CustomerListScreen()),
+                );
+              }),
               const Divider(color: Colors.white24, height: 24),
-              _buildBalanceRow('Total Payable (Suppliers)', payable, Colors.red.shade200),
+              _buildBalanceRow(
+                  'Total Payable (Suppliers)', payable, Colors.red.shade200,
+                  () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SupplierListScreen()),
+                );
+              }),
             ],
           ),
         ),
@@ -221,16 +258,31 @@ class _ReportsScreenState extends State<ReportsScreen> {
     );
   }
 
-  Widget _buildBalanceRow(String label, double amount, Color amountColor) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 13)),
-        Text(
-          '₹${amount.toStringAsFixed(1)}',
-          style: TextStyle(color: amountColor, fontWeight: FontWeight.bold, fontSize: 18),
-        ),
-      ],
+  Widget _buildBalanceRow(
+      String label, double amount, Color amountColor, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label,
+              style: const TextStyle(color: Colors.white70, fontSize: 13)),
+          Row(
+            children: [
+              Text(
+                '₹${amount.toStringAsFixed(1)}',
+                style: TextStyle(
+                    color: amountColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18),
+              ),
+              const SizedBox(width: 8),
+              const Icon(Icons.arrow_forward_ios, color: Colors.white38, size: 14),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

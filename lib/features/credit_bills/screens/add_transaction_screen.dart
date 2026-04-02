@@ -103,9 +103,9 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
               if (_categoryRequiresParty())
                 _buildPartySelector(customerProvider, supplierProvider),
               const SizedBox(height: 24),
-              _buildAmountFields(),
-              const SizedBox(height: 24),
               _buildPaymentTypeSelector(),
+              const SizedBox(height: 24),
+              _buildAmountFields(),
               const SizedBox(height: 24),
               _buildDatePicker(),
               const SizedBox(height: 24),
@@ -285,40 +285,70 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   }
 
   void _showPartyPicker(List<dynamic> parties, bool isCustomer) {
+    String searchQuery = '';
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (context) {
-        return Container(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            children: [
-              Text(isCustomer ? 'Select Customer' : 'Select Supplier',
-                  style: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.bold)),
-              const Divider(),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: parties.length,
-                  itemBuilder: (context, index) {
-                    final party = parties[index];
-                    return ListTile(
-                      title: Text(party.name),
-                      subtitle: Text(party.phone),
-                      onTap: () {
-                        setState(() {
-                          _selectedPartyId = party.id;
-                          _selectedPartyName = party.name;
-                        });
-                        Navigator.pop(context);
-                      },
-                    );
-                  },
-                ),
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final filteredParties = parties.where((p) {
+              return p.name.toLowerCase().contains(searchQuery.toLowerCase()) ||
+                  p.phone.contains(searchQuery);
+            }).toList();
+
+            return Container(
+              padding: const EdgeInsets.all(20),
+              height: MediaQuery.of(context).size.height * 0.7,
+              child: Column(
+                children: [
+                  Text(isCustomer ? 'Select Customer' : 'Select Supplier',
+                      style: const TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 16),
+                  TextField(
+                    decoration: InputDecoration(
+                      hintText: 'Search by name or phone...',
+                      prefixIcon: const Icon(Icons.search),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 0),
+                    ),
+                    onChanged: (val) {
+                      setModalState(() {
+                        searchQuery = val;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  const Divider(),
+                  Expanded(
+                    child: filteredParties.isEmpty
+                        ? const Center(child: Text('No matching parties found'))
+                        : ListView.builder(
+                            itemCount: filteredParties.length,
+                            itemBuilder: (context, index) {
+                              final party = filteredParties[index];
+                              return ListTile(
+                                title: Text(party.name),
+                                subtitle: Text(party.phone),
+                                onTap: () {
+                                  setState(() {
+                                    _selectedPartyId = party.id;
+                                    _selectedPartyName = party.name;
+                                  });
+                                  Navigator.pop(context);
+                                },
+                              );
+                            },
+                          ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            );
+          },
         );
       },
     );

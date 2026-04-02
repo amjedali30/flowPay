@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/supplier.dart';
 import '../models/transaction.dart';
 import '../providers/transaction_provider.dart';
+import '../providers/supplier_provider.dart';
 import 'add_transaction_screen.dart';
 
 class SupplierDetailScreen extends StatelessWidget {
@@ -12,22 +13,27 @@ class SupplierDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final supplierProvider = context.watch<SupplierProvider>();
+    final currentSupplier = supplierProvider.suppliers.firstWhere(
+      (s) => s.id == supplier.id,
+      orElse: () => supplier,
+    );
     final txProvider = context.watch<TransactionProvider>();
     final supplierTransactions = txProvider.transactions
-        .where((tx) => tx.partyId == supplier.id)
+        .where((tx) => tx.partyId == currentSupplier.id)
         .toList()
       ..sort((a, b) => b.date.compareTo(a.date));
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFB),
       appBar: AppBar(
-        title: Text(supplier.name),
+        title: Text(currentSupplier.name),
         backgroundColor: Colors.teal.shade700,
         foregroundColor: Colors.white,
       ),
       body: Column(
         children: [
-          _buildSummaryHeader(context),
+          _buildSummaryHeader(context, currentSupplier),
           const Divider(height: 1),
           const Padding(
             padding: EdgeInsets.all(16.0),
@@ -65,7 +71,7 @@ class SupplierDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSummaryHeader(BuildContext context) {
+  Widget _buildSummaryHeader(BuildContext context, Supplier currentSupplier) {
     return Container(
       padding: const EdgeInsets.all(24),
       color: Colors.white,
@@ -79,7 +85,7 @@ class SupplierDetailScreen extends StatelessWidget {
                   style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
               const SizedBox(height: 4),
               Text(
-                '₹${supplier.balance.toStringAsFixed(2)}',
+                '₹${currentSupplier.balance.toStringAsFixed(2)}',
                 style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,

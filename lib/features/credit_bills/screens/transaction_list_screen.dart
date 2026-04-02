@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../providers/transaction_provider.dart';
+import '../providers/customer_provider.dart';
+import '../providers/supplier_provider.dart';
 import '../models/transaction.dart';
+import '../models/customer.dart';
+import '../models/supplier.dart';
 import 'transaction_detail_screen.dart';
 
 class TransactionListScreen extends StatefulWidget {
@@ -204,12 +208,30 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
             ),
             if (tx.partyId != null) ...[
               const SizedBox(height: 2),
-              Text(
-                'Party: ${tx.partyId!.substring(0, 8)}',
-                style: const TextStyle(
-                    color: Colors.teal,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600),
+              Builder(
+                builder: (context) {
+                  String name = tx.partyId!.substring(0, 8);
+                  if (tx.partyType == PartyType.customer) {
+                    final customers = context.watch<CustomerProvider>().customers;
+                    final customer = customers.cast<Customer?>().firstWhere(
+                        (c) => c?.id == tx.partyId,
+                        orElse: () => null);
+                    if (customer != null) name = customer.name;
+                  } else if (tx.partyType == PartyType.supplier) {
+                    final suppliers = context.watch<SupplierProvider>().suppliers;
+                    final supplier = suppliers.cast<Supplier?>().firstWhere(
+                        (s) => s?.id == tx.partyId,
+                        orElse: () => null);
+                    if (supplier != null) name = supplier.name;
+                  }
+                  return Text(
+                    'Party: $name',
+                    style: const TextStyle(
+                        color: Colors.teal,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600),
+                  );
+                },
               ),
             ],
           ],

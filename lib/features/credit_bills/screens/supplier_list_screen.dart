@@ -4,8 +4,32 @@ import '../providers/supplier_provider.dart';
 import 'add_supplier_screen.dart';
 import 'supplier_detail_screen.dart';
 
-class SupplierListScreen extends StatelessWidget {
+class SupplierListScreen extends StatefulWidget {
   const SupplierListScreen({super.key});
+
+  @override
+  State<SupplierListScreen> createState() => _SupplierListScreenState();
+}
+
+class _SupplierListScreenState extends State<SupplierListScreen> {
+  final _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(() {
+      setState(() {
+        _searchQuery = _searchController.text.toLowerCase();
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,6 +42,26 @@ class SupplierListScreen extends StatelessWidget {
         elevation: 0,
         backgroundColor: Colors.white,
         foregroundColor: Colors.black87,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(60),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Search by name or phone...',
+                prefixIcon: const Icon(Icons.search),
+                filled: true,
+                fillColor: Colors.grey.shade100,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(vertical: 0),
+              ),
+            ),
+          ),
+        ),
       ),
       body: Consumer<SupplierProvider>(
         builder: (context, provider, child) {
@@ -29,7 +73,12 @@ class SupplierListScreen extends StatelessWidget {
             return Center(child: Text('Error: ${provider.error}'));
           }
 
-          if (provider.suppliers.isEmpty) {
+          final filteredSuppliers = provider.suppliers.where((supplier) {
+            return supplier.name.toLowerCase().contains(_searchQuery) ||
+                supplier.phone.contains(_searchQuery);
+          }).toList();
+
+          if (filteredSuppliers.isEmpty) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -37,7 +86,10 @@ class SupplierListScreen extends StatelessWidget {
                   Icon(Icons.local_shipping_outlined,
                       size: 64, color: Colors.grey.shade400),
                   const SizedBox(height: 16),
-                  Text('No suppliers found',
+                  Text(
+                      _searchQuery.isEmpty
+                          ? 'No suppliers found'
+                          : 'No matching suppliers',
                       style: TextStyle(color: Colors.grey.shade600)),
                 ],
               ),
@@ -46,9 +98,9 @@ class SupplierListScreen extends StatelessWidget {
 
           return ListView.builder(
             padding: const EdgeInsets.all(16),
-            itemCount: provider.suppliers.length,
+            itemCount: filteredSuppliers.length,
             itemBuilder: (context, index) {
-              final supplier = provider.suppliers[index];
+              final supplier = filteredSuppliers[index];
               final balance = supplier.balance;
               final isPositive = balance >= 0;
 

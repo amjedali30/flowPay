@@ -5,12 +5,40 @@ import '../models/customer.dart';
 import '../providers/customer_provider.dart';
 import 'customer_detail_screen.dart';
 
-class CustomerListScreen extends StatelessWidget {
+class CustomerListScreen extends StatefulWidget {
   const CustomerListScreen({super.key});
+
+  @override
+  State<CustomerListScreen> createState() => _CustomerListScreenState();
+}
+
+class _CustomerListScreenState extends State<CustomerListScreen> {
+  final _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(() {
+      setState(() {
+        _searchQuery = _searchController.text.toLowerCase();
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<CustomerProvider>();
+    final filteredCustomers = provider.customers.where((customer) {
+      return customer.name.toLowerCase().contains(_searchQuery) ||
+          customer.phone.contains(_searchQuery);
+    }).toList();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF3F6F9),
@@ -21,8 +49,28 @@ class CustomerListScreen extends StatelessWidget {
         elevation: 0,
         backgroundColor: Colors.white,
         foregroundColor: Colors.black87,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(60),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Search by name or phone...',
+                prefixIcon: const Icon(Icons.search),
+                filled: true,
+                fillColor: Colors.grey.shade100,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(vertical: 0),
+              ),
+            ),
+          ),
+        ),
       ),
-      body: provider.customers.isEmpty
+      body: filteredCustomers.isEmpty
           ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -30,16 +78,19 @@ class CustomerListScreen extends StatelessWidget {
                   Icon(Icons.people_outline,
                       size: 64, color: Colors.grey.shade400),
                   const SizedBox(height: 16),
-                  Text('No customers found',
+                  Text(
+                      _searchQuery.isEmpty
+                          ? 'No customers found'
+                          : 'No matching customers',
                       style: TextStyle(color: Colors.grey.shade600)),
                 ],
               ),
             )
           : ListView.builder(
               padding: const EdgeInsets.all(16),
-              itemCount: provider.customers.length,
+              itemCount: filteredCustomers.length,
               itemBuilder: (context, index) {
-                final customer = provider.customers[index];
+                final customer = filteredCustomers[index];
                 final balance = customer.balance;
                 final isPositive = balance >= 0;
 

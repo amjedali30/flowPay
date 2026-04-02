@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/customer.dart';
 import '../models/transaction.dart';
 import '../providers/transaction_provider.dart';
+import '../providers/customer_provider.dart';
 import 'add_transaction_screen.dart';
 
 class CustomerDetailScreen extends StatelessWidget {
@@ -12,22 +13,27 @@ class CustomerDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final customerProvider = context.watch<CustomerProvider>();
+    final currentCustomer = customerProvider.customers.firstWhere(
+      (c) => c.id == customer.id,
+      orElse: () => customer,
+    );
     final txProvider = context.watch<TransactionProvider>();
     final customerTransactions = txProvider.transactions
-        .where((tx) => tx.partyId == customer.id)
+        .where((tx) => tx.partyId == currentCustomer.id)
         .toList()
       ..sort((a, b) => b.date.compareTo(a.date));
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFB),
       appBar: AppBar(
-        title: Text(customer.name),
+        title: Text(currentCustomer.name),
         backgroundColor: Colors.teal.shade700,
         foregroundColor: Colors.white,
       ),
       body: Column(
         children: [
-          _buildSummaryHeader(context),
+          _buildSummaryHeader(context, currentCustomer),
           const Divider(height: 1),
           const Padding(
             padding: EdgeInsets.all(16.0),
@@ -65,7 +71,7 @@ class CustomerDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSummaryHeader(BuildContext context) {
+  Widget _buildSummaryHeader(BuildContext context, Customer currentCustomer) {
     return Container(
       padding: const EdgeInsets.all(24),
       color: Colors.white,
@@ -79,7 +85,7 @@ class CustomerDetailScreen extends StatelessWidget {
                   style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
               const SizedBox(height: 4),
               Text(
-                '₹${customer.balance.toStringAsFixed(2)}',
+                '₹${currentCustomer.balance.toStringAsFixed(2)}',
                 style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,

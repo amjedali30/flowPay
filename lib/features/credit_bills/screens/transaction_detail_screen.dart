@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../models/transaction.dart';
+import '../models/customer.dart';
+import '../models/supplier.dart';
 import '../providers/transaction_provider.dart';
+import '../providers/customer_provider.dart';
+import '../providers/supplier_provider.dart';
 import 'add_transaction_screen.dart';
 
 class TransactionDetailScreen extends StatelessWidget {
@@ -130,8 +134,25 @@ class TransactionDetailScreen extends StatelessWidget {
               transaction.paymentType.name.toUpperCase()),
           const Divider(height: 32),
           if (transaction.partyId != null) ...[
-            _buildDetailRow(
-                Icons.person, 'Party', transaction.partyId!.substring(0, 8)),
+            Builder(
+              builder: (context) {
+                String name = transaction.partyId!.substring(0, 8);
+                if (transaction.partyType == PartyType.customer) {
+                  final customers = context.watch<CustomerProvider>().customers;
+                  final customer = customers.cast<Customer?>().firstWhere(
+                      (c) => c?.id == transaction.partyId,
+                      orElse: () => null);
+                  if (customer != null) name = customer.name;
+                } else if (transaction.partyType == PartyType.supplier) {
+                  final suppliers = context.watch<SupplierProvider>().suppliers;
+                  final supplier = suppliers.cast<Supplier?>().firstWhere(
+                      (s) => s?.id == transaction.partyId,
+                      orElse: () => null);
+                  if (supplier != null) name = supplier.name;
+                }
+                return _buildDetailRow(Icons.person, 'Party', name);
+              },
+            ),
             const Divider(height: 32),
           ],
           _buildDetailRow(

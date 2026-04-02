@@ -65,10 +65,10 @@ class TransactionRepository {
       TransactionModel oldTx, TransactionModel newTx) async {
     await _service.firestore.runTransaction((tx) async {
       // 1. Reads
-      DocumentReference? oldPartyRef;
-      DocumentSnapshot? oldPartySnap;
-      DocumentReference? newPartyRef;
-      DocumentSnapshot? newPartySnap;
+      DocumentReference<dynamic>? oldPartyRef;
+      DocumentSnapshot<dynamic>? oldPartySnap;
+      DocumentReference<dynamic>? newPartyRef;
+      DocumentSnapshot<dynamic>? newPartySnap;
 
       if (oldTx.partyId != null && oldTx.partyType != null) {
         oldPartyRef = oldTx.partyType == PartyType.customer
@@ -132,7 +132,7 @@ class TransactionRepository {
           oldPartySnap != null &&
           oldPartySnap.exists &&
           oldPartyNetChange != 0) {
-        final currentBal = (oldPartySnap.data() as dynamic)['balance'] ?? 0.0;
+        final currentBal = oldPartySnap.data()?.balance ?? 0.0;
         tx.update(oldPartyRef, {'balance': currentBal + oldPartyNetChange});
       }
 
@@ -141,11 +141,11 @@ class TransactionRepository {
           newPartySnap.exists &&
           newPartyNetChange != 0) {
         if (newPartyRef == oldPartyRef) {
-          final currentBal = (oldPartySnap!.data() as dynamic)['balance'] ?? 0.0;
+          final currentBal = oldPartySnap!.data()?.balance ?? 0.0;
           tx.update(newPartyRef,
               {'balance': currentBal + oldPartyNetChange + newPartyNetChange});
         } else {
-          final currentBal = (newPartySnap.data() as dynamic)['balance'] ?? 0.0;
+          final currentBal = newPartySnap.data()?.balance ?? 0.0;
           tx.update(newPartyRef, {'balance': currentBal + newPartyNetChange});
         }
       }
