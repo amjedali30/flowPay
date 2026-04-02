@@ -111,10 +111,50 @@ class TransactionProvider with ChangeNotifier {
 
   // Reports
   Map<String, double> getMonthlyReport(int month, int year) {
-    final filtered = _transactions.where((tx) => tx.date.month == month && tx.date.year == year);
+    final filtered = _transactions
+        .where((tx) => tx.date.month == month && tx.date.year == year);
     return {
-      'income': filtered.where((tx) => tx.type == TransactionType.IN).fold(0.0, (s, tx) => s + tx.paidAmount),
-      'expense': filtered.where((tx) => tx.type == TransactionType.OUT).fold(0.0, (s, tx) => s + tx.paidAmount),
+      'income': filtered
+          .where((tx) => tx.type == TransactionType.IN)
+          .fold(0.0, (s, tx) => s + tx.paidAmount),
+      'expense': filtered
+          .where((tx) => tx.type == TransactionType.OUT)
+          .fold(0.0, (s, tx) => s + tx.paidAmount),
     };
+  }
+
+  Map<String, double> getReportByRange(DateTime start, DateTime end) {
+    // Normalize dates to start and end of day
+    final s = DateTime(start.year, start.month, start.day);
+    final e = DateTime(end.year, end.month, end.day, 23, 59, 59);
+
+    final filtered = _transactions
+        .where((tx) => tx.date.isAfter(s.subtract(const Duration(seconds: 1))) && 
+                      tx.date.isBefore(e.add(const Duration(seconds: 1))));
+    return {
+      'income': filtered
+          .where((tx) => tx.type == TransactionType.IN)
+          .fold(0.0, (sum, tx) => sum + tx.paidAmount),
+      'expense': filtered
+          .where((tx) => tx.type == TransactionType.OUT)
+          .fold(0.0, (sum, tx) => sum + tx.paidAmount),
+    };
+  }
+
+  Map<TransactionCategory, double> getCategoryBreakdown(
+      TransactionType type, DateTime start, DateTime end) {
+    final s = DateTime(start.year, start.month, start.day);
+    final e = DateTime(end.year, end.month, end.day, 23, 59, 59);
+
+    final filtered = _transactions.where((tx) =>
+        tx.type == type &&
+        tx.date.isAfter(s.subtract(const Duration(seconds: 1))) &&
+        tx.date.isBefore(e.add(const Duration(seconds: 1))));
+
+    Map<TransactionCategory, double> breakdown = {};
+    for (var tx in filtered) {
+      breakdown[tx.category] = (breakdown[tx.category] ?? 0.0) + tx.paidAmount;
+    }
+    return breakdown;
   }
 }
