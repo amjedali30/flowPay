@@ -20,15 +20,19 @@ TransactionModel _$TransactionModelFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$TransactionModel {
-  String get id => throw _privateConstructorUsedError;
-  @JsonKey(fromJson: _typeFromJson)
+  String get id =>
+      throw _privateConstructorUsedError; // @JsonKey(fromJson: _typeFromJson) required TransactionType type,
+// @JsonKey(fromJson: _categoryFromJson) required TransactionCategory category,
+  @TransactionTypeConverter()
   TransactionType get type => throw _privateConstructorUsedError;
-  @JsonKey(fromJson: _categoryFromJson)
+  @TransactionCategoryConverter()
   TransactionCategory get category => throw _privateConstructorUsedError;
   double get amount => throw _privateConstructorUsedError;
   PaymentType get paymentType => throw _privateConstructorUsedError;
   String? get partyId => throw _privateConstructorUsedError;
   PartyType? get partyType => throw _privateConstructorUsedError;
+  String? get creditPartyId => throw _privateConstructorUsedError;
+  PartyType? get creditPartyType => throw _privateConstructorUsedError;
   double get totalAmount => throw _privateConstructorUsedError;
   double get paidAmount => throw _privateConstructorUsedError;
   double get balanceAmount => throw _privateConstructorUsedError;
@@ -37,8 +41,12 @@ mixin _$TransactionModel {
   String? get note => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
 
+  /// Serializes this TransactionModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of TransactionModel
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $TransactionModelCopyWith<TransactionModel> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -51,12 +59,14 @@ abstract class $TransactionModelCopyWith<$Res> {
   @useResult
   $Res call(
       {String id,
-      @JsonKey(fromJson: _typeFromJson) TransactionType type,
-      @JsonKey(fromJson: _categoryFromJson) TransactionCategory category,
+      @TransactionTypeConverter() TransactionType type,
+      @TransactionCategoryConverter() TransactionCategory category,
       double amount,
       PaymentType paymentType,
       String? partyId,
       PartyType? partyType,
+      String? creditPartyId,
+      PartyType? creditPartyType,
       double totalAmount,
       double paidAmount,
       double balanceAmount,
@@ -76,6 +86,8 @@ class _$TransactionModelCopyWithImpl<$Res, $Val extends TransactionModel>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of TransactionModel
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -86,6 +98,8 @@ class _$TransactionModelCopyWithImpl<$Res, $Val extends TransactionModel>
     Object? paymentType = null,
     Object? partyId = freezed,
     Object? partyType = freezed,
+    Object? creditPartyId = freezed,
+    Object? creditPartyType = freezed,
     Object? totalAmount = null,
     Object? paidAmount = null,
     Object? balanceAmount = null,
@@ -122,6 +136,14 @@ class _$TransactionModelCopyWithImpl<$Res, $Val extends TransactionModel>
       partyType: freezed == partyType
           ? _value.partyType
           : partyType // ignore: cast_nullable_to_non_nullable
+              as PartyType?,
+      creditPartyId: freezed == creditPartyId
+          ? _value.creditPartyId
+          : creditPartyId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      creditPartyType: freezed == creditPartyType
+          ? _value.creditPartyType
+          : creditPartyType // ignore: cast_nullable_to_non_nullable
               as PartyType?,
       totalAmount: null == totalAmount
           ? _value.totalAmount
@@ -165,12 +187,14 @@ abstract class _$$TransactionModelImplCopyWith<$Res>
   @useResult
   $Res call(
       {String id,
-      @JsonKey(fromJson: _typeFromJson) TransactionType type,
-      @JsonKey(fromJson: _categoryFromJson) TransactionCategory category,
+      @TransactionTypeConverter() TransactionType type,
+      @TransactionCategoryConverter() TransactionCategory category,
       double amount,
       PaymentType paymentType,
       String? partyId,
       PartyType? partyType,
+      String? creditPartyId,
+      PartyType? creditPartyType,
       double totalAmount,
       double paidAmount,
       double balanceAmount,
@@ -188,6 +212,8 @@ class __$$TransactionModelImplCopyWithImpl<$Res>
       $Res Function(_$TransactionModelImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of TransactionModel
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -198,6 +224,8 @@ class __$$TransactionModelImplCopyWithImpl<$Res>
     Object? paymentType = null,
     Object? partyId = freezed,
     Object? partyType = freezed,
+    Object? creditPartyId = freezed,
+    Object? creditPartyType = freezed,
     Object? totalAmount = null,
     Object? paidAmount = null,
     Object? balanceAmount = null,
@@ -234,6 +262,14 @@ class __$$TransactionModelImplCopyWithImpl<$Res>
       partyType: freezed == partyType
           ? _value.partyType
           : partyType // ignore: cast_nullable_to_non_nullable
+              as PartyType?,
+      creditPartyId: freezed == creditPartyId
+          ? _value.creditPartyId
+          : creditPartyId // ignore: cast_nullable_to_non_nullable
+              as String?,
+      creditPartyType: freezed == creditPartyType
+          ? _value.creditPartyType
+          : creditPartyType // ignore: cast_nullable_to_non_nullable
               as PartyType?,
       totalAmount: null == totalAmount
           ? _value.totalAmount
@@ -272,12 +308,14 @@ class __$$TransactionModelImplCopyWithImpl<$Res>
 class _$TransactionModelImpl implements _TransactionModel {
   const _$TransactionModelImpl(
       {required this.id,
-      @JsonKey(fromJson: _typeFromJson) required this.type,
-      @JsonKey(fromJson: _categoryFromJson) required this.category,
+      @TransactionTypeConverter() required this.type,
+      @TransactionCategoryConverter() required this.category,
       required this.amount,
       required this.paymentType,
       this.partyId,
       this.partyType,
+      this.creditPartyId,
+      this.creditPartyType,
       this.totalAmount = 0.0,
       this.paidAmount = 0.0,
       this.balanceAmount = 0.0,
@@ -291,11 +329,13 @@ class _$TransactionModelImpl implements _TransactionModel {
 
   @override
   final String id;
+// @JsonKey(fromJson: _typeFromJson) required TransactionType type,
+// @JsonKey(fromJson: _categoryFromJson) required TransactionCategory category,
   @override
-  @JsonKey(fromJson: _typeFromJson)
+  @TransactionTypeConverter()
   final TransactionType type;
   @override
-  @JsonKey(fromJson: _categoryFromJson)
+  @TransactionCategoryConverter()
   final TransactionCategory category;
   @override
   final double amount;
@@ -305,6 +345,10 @@ class _$TransactionModelImpl implements _TransactionModel {
   final String? partyId;
   @override
   final PartyType? partyType;
+  @override
+  final String? creditPartyId;
+  @override
+  final PartyType? creditPartyType;
   @override
   @JsonKey()
   final double totalAmount;
@@ -326,7 +370,7 @@ class _$TransactionModelImpl implements _TransactionModel {
 
   @override
   String toString() {
-    return 'TransactionModel(id: $id, type: $type, category: $category, amount: $amount, paymentType: $paymentType, partyId: $partyId, partyType: $partyType, totalAmount: $totalAmount, paidAmount: $paidAmount, balanceAmount: $balanceAmount, isCredit: $isCredit, date: $date, note: $note, createdAt: $createdAt)';
+    return 'TransactionModel(id: $id, type: $type, category: $category, amount: $amount, paymentType: $paymentType, partyId: $partyId, partyType: $partyType, creditPartyId: $creditPartyId, creditPartyType: $creditPartyType, totalAmount: $totalAmount, paidAmount: $paidAmount, balanceAmount: $balanceAmount, isCredit: $isCredit, date: $date, note: $note, createdAt: $createdAt)';
   }
 
   @override
@@ -344,6 +388,10 @@ class _$TransactionModelImpl implements _TransactionModel {
             (identical(other.partyId, partyId) || other.partyId == partyId) &&
             (identical(other.partyType, partyType) ||
                 other.partyType == partyType) &&
+            (identical(other.creditPartyId, creditPartyId) ||
+                other.creditPartyId == creditPartyId) &&
+            (identical(other.creditPartyType, creditPartyType) ||
+                other.creditPartyType == creditPartyType) &&
             (identical(other.totalAmount, totalAmount) ||
                 other.totalAmount == totalAmount) &&
             (identical(other.paidAmount, paidAmount) ||
@@ -358,7 +406,7 @@ class _$TransactionModelImpl implements _TransactionModel {
                 other.createdAt == createdAt));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -369,6 +417,8 @@ class _$TransactionModelImpl implements _TransactionModel {
       paymentType,
       partyId,
       partyType,
+      creditPartyId,
+      creditPartyType,
       totalAmount,
       paidAmount,
       balanceAmount,
@@ -377,7 +427,9 @@ class _$TransactionModelImpl implements _TransactionModel {
       note,
       createdAt);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of TransactionModel
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$TransactionModelImplCopyWith<_$TransactionModelImpl> get copyWith =>
@@ -395,13 +447,15 @@ class _$TransactionModelImpl implements _TransactionModel {
 abstract class _TransactionModel implements TransactionModel {
   const factory _TransactionModel(
       {required final String id,
-      @JsonKey(fromJson: _typeFromJson) required final TransactionType type,
-      @JsonKey(fromJson: _categoryFromJson)
+      @TransactionTypeConverter() required final TransactionType type,
+      @TransactionCategoryConverter()
       required final TransactionCategory category,
       required final double amount,
       required final PaymentType paymentType,
       final String? partyId,
       final PartyType? partyType,
+      final String? creditPartyId,
+      final PartyType? creditPartyType,
       final double totalAmount,
       final double paidAmount,
       final double balanceAmount,
@@ -414,12 +468,14 @@ abstract class _TransactionModel implements TransactionModel {
       _$TransactionModelImpl.fromJson;
 
   @override
-  String get id;
+  String
+      get id; // @JsonKey(fromJson: _typeFromJson) required TransactionType type,
+// @JsonKey(fromJson: _categoryFromJson) required TransactionCategory category,
   @override
-  @JsonKey(fromJson: _typeFromJson)
+  @TransactionTypeConverter()
   TransactionType get type;
   @override
-  @JsonKey(fromJson: _categoryFromJson)
+  @TransactionCategoryConverter()
   TransactionCategory get category;
   @override
   double get amount;
@@ -429,6 +485,10 @@ abstract class _TransactionModel implements TransactionModel {
   String? get partyId;
   @override
   PartyType? get partyType;
+  @override
+  String? get creditPartyId;
+  @override
+  PartyType? get creditPartyType;
   @override
   double get totalAmount;
   @override
@@ -443,8 +503,11 @@ abstract class _TransactionModel implements TransactionModel {
   String? get note;
   @override
   DateTime get createdAt;
+
+  /// Create a copy of TransactionModel
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$TransactionModelImplCopyWith<_$TransactionModelImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

@@ -36,7 +36,7 @@ class _SupplierListScreenState extends State<SupplierListScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF3F6F9),
       appBar: AppBar(
-        title: const Text('Suppliers',
+        title: const Text('Suppliers / Shop Persons',
             style: TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
         elevation: 0,
@@ -215,7 +215,7 @@ class _SupplierListScreenState extends State<SupplierListScreen> {
         backgroundColor: Colors.blue.shade700,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add),
-        label: const Text('Add Supplier'),
+        label: const Text('Add Person/Supplier'),
       ),
     );
   }

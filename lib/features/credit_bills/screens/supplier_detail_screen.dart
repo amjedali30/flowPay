@@ -102,7 +102,7 @@ class SupplierDetailScreen extends StatelessWidget {
               ),
             ),
             icon: const Icon(Icons.payment),
-            label: const Text('Pay Supplier'),
+            label: const Text('Pay Now'),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red.shade100,
               foregroundColor: Colors.red.shade900,
@@ -135,7 +135,7 @@ class SupplierDetailScreen extends StatelessWidget {
               color: color, size: 20),
         ),
         title: Text(tx.category.name.replaceAll('_', ' ').toUpperCase(),
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
         subtitle: Text(
           '${tx.date.toString().substring(0, 10)} - ${tx.paymentType.name.toUpperCase()}',
           style: TextStyle(color: Colors.grey.shade600, fontSize: 11),

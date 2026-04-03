@@ -17,8 +17,10 @@ TransactionType _typeFromJson(dynamic json) {
 
 enum TransactionCategory {
   sale,
+  credit_sale,
   payment_received,
   purchase,
+  credit_purchase,
   payment_paid,
   expense,
   salary,
@@ -51,7 +53,10 @@ class TransactionModel with _$TransactionModel {
     required PaymentType paymentType,
     String? partyId,
     PartyType? partyType,
+    String? creditPartyId,
+    PartyType? creditPartyType,
     @Default(0.0) double totalAmount,
+
     @Default(0.0) double paidAmount,
     @Default(0.0) double balanceAmount,
     @Default(false) bool isCredit,

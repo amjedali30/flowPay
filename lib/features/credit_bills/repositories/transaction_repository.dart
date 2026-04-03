@@ -9,51 +9,57 @@ class TransactionRepository {
 
   Future<void> addTransaction(TransactionModel transaction) async {
     await _service.firestore.runTransaction((tx) async {
-      // 1. Update Party Balance if applicable (Requires READS)
+      // 1. Update Party Balances if applicable (Requires READS)
+      
+      // A. Main Party Change (for direct payments/receipts)
       if (transaction.partyId != null && transaction.partyType != null) {
+        if (transaction.category == TransactionCategory.payment_received ||
+            transaction.category == TransactionCategory.payment_paid) {
+          
         if (transaction.partyType == PartyType.customer) {
-          final customerRef = _service.customers.doc(transaction.partyId);
-          final customerSnap = await tx.get(customerRef);
-
-          if (customerSnap.exists) {
-            final customer = customerSnap.data()!;
-            double balanceChange = 0;
-
-            if (transaction.category == TransactionCategory.sale &&
-                transaction.isCredit) {
-              balanceChange = transaction.balanceAmount;
-            } else if (transaction.category ==
-                TransactionCategory.payment_received) {
-              balanceChange = -transaction.amount;
-            }
-
-            if (balanceChange != 0) {
-              tx.update(customerRef,
-                  {'balance': customer.balance + balanceChange});
-            }
+          final partyRef = _service.customers.doc(transaction.partyId);
+          final partySnap = await tx.get(partyRef);
+          if (partySnap.exists) {
+            final party = partySnap.data()!;
+            tx.update(partyRef, {'balance': party.balance - transaction.amount});
           }
-        } else if (transaction.partyType == PartyType.supplier) {
-          final supplierRef = _service.suppliers.doc(transaction.partyId);
-          final supplierSnap = await tx.get(supplierRef);
-
-          if (supplierSnap.exists) {
-            final supplier = supplierSnap.data()!;
-            double balanceChange = 0;
-
-            if (transaction.category == TransactionCategory.purchase &&
-                transaction.isCredit) {
-              balanceChange = transaction.balanceAmount;
-            } else if (transaction.category == TransactionCategory.payment_paid) {
-              balanceChange = -transaction.amount;
-            }
-
-            if (balanceChange != 0) {
-              tx.update(supplierRef,
-                  {'balance': supplier.balance + balanceChange});
-            }
+        } else {
+          final partyRef = _service.suppliers.doc(transaction.partyId);
+          final partySnap = await tx.get(partyRef);
+          if (partySnap.exists) {
+            final party = partySnap.data()!;
+            tx.update(partyRef, {'balance': party.balance - transaction.amount});
           }
         }
+        }
       }
+
+      // B. Credit Party Change (for balances/split payments)
+      final creditPartyId = transaction.creditPartyId ?? transaction.partyId;
+      final creditPartyType = transaction.creditPartyType ?? transaction.partyType;
+
+      if (creditPartyId != null && creditPartyType != null && transaction.isCredit) {
+        if (transaction.category != TransactionCategory.payment_received &&
+            transaction.category != TransactionCategory.payment_paid) {
+          
+        if (creditPartyType == PartyType.customer) {
+          final creditPartyRef = _service.customers.doc(creditPartyId);
+          final creditPartySnap = await tx.get(creditPartyRef);
+          if (creditPartySnap.exists) {
+            final creditParty = creditPartySnap.data()!;
+            tx.update(creditPartyRef, {'balance': creditParty.balance + transaction.balanceAmount});
+          }
+        } else {
+          final creditPartyRef = _service.suppliers.doc(creditPartyId);
+          final creditPartySnap = await tx.get(creditPartyRef);
+          if (creditPartySnap.exists) {
+            final creditParty = creditPartySnap.data()!;
+            tx.update(creditPartyRef, {'balance': creditParty.balance + transaction.balanceAmount});
+          }
+        }
+        }
+      }
+
 
       // 2. Add the transaction (Requires WRITE)
       final txRef = _service.transactions.doc(transaction.id);
@@ -61,95 +67,81 @@ class TransactionRepository {
     });
   }
 
-  Future<void> updateTransaction(
-      TransactionModel oldTx, TransactionModel newTx) async {
+  Future<void> updateTransaction(TransactionModel oldTx, TransactionModel newTx) async {
     await _service.firestore.runTransaction((tx) async {
-      // 1. Reads
-      DocumentReference<dynamic>? oldPartyRef;
-      DocumentSnapshot<dynamic>? oldPartySnap;
-      DocumentReference<dynamic>? newPartyRef;
-      DocumentSnapshot<dynamic>? newPartySnap;
-
+      // 1. Reverse effects of oldTx
+      
+      // A. Main Party Reverse
       if (oldTx.partyId != null && oldTx.partyType != null) {
-        oldPartyRef = oldTx.partyType == PartyType.customer
-            ? _service.customers.doc(oldTx.partyId)
-            : _service.suppliers.doc(oldTx.partyId);
-        oldPartySnap = await tx.get(oldPartyRef);
+        if (oldTx.category == TransactionCategory.payment_received ||
+            oldTx.category == TransactionCategory.payment_paid) {
+          if (oldTx.partyType == PartyType.customer) {
+            final ref = _service.customers.doc(oldTx.partyId);
+            final snap = await tx.get(ref);
+            if (snap.exists) tx.update(ref, {'balance': snap.data()!.balance + oldTx.amount});
+          } else {
+            final ref = _service.suppliers.doc(oldTx.partyId);
+            final snap = await tx.get(ref);
+            if (snap.exists) tx.update(ref, {'balance': snap.data()!.balance + oldTx.amount});
+          }
+        }
       }
 
+      // B. Credit Party Reverse
+      final oldCreditId = oldTx.creditPartyId ?? oldTx.partyId;
+      final oldCreditType = oldTx.creditPartyType ?? oldTx.partyType;
+      if (oldCreditId != null && oldCreditType != null && oldTx.isCredit) {
+        if (oldTx.category != TransactionCategory.payment_received &&
+            oldTx.category != TransactionCategory.payment_paid) {
+          if (oldCreditType == PartyType.customer) {
+            final ref = _service.customers.doc(oldCreditId);
+            final snap = await tx.get(ref);
+            if (snap.exists) tx.update(ref, {'balance': snap.data()!.balance - oldTx.balanceAmount});
+          } else {
+            final ref = _service.suppliers.doc(oldCreditId);
+            final snap = await tx.get(ref);
+            if (snap.exists) tx.update(ref, {'balance': snap.data()!.balance - oldTx.balanceAmount});
+          }
+        }
+      }
+
+      // 2. Apply effects of newTx
+      
+      // A. Main Party Apply
       if (newTx.partyId != null && newTx.partyType != null) {
-        if (newTx.partyId == oldTx.partyId &&
-            newTx.partyType == oldTx.partyType) {
-          newPartyRef = oldPartyRef;
-          newPartySnap = oldPartySnap;
-        } else {
-          newPartyRef = newTx.partyType == PartyType.customer
-              ? _service.customers.doc(newTx.partyId)
-              : _service.suppliers.doc(newTx.partyId);
-          newPartySnap = await tx.get(newPartyRef);
-        }
-      }
-
-      // 2. Calculate balance changes
-      double oldPartyNetChange = 0;
-      if (oldPartySnap != null && oldPartySnap.exists) {
-        if (oldTx.partyType == PartyType.customer) {
-          if (oldTx.category == TransactionCategory.sale && oldTx.isCredit) {
-            oldPartyNetChange = -oldTx.balanceAmount;
-          } else if (oldTx.category == TransactionCategory.payment_received) {
-            oldPartyNetChange = oldTx.amount;
-          }
-        } else {
-          if (oldTx.category == TransactionCategory.purchase &&
-              oldTx.isCredit) {
-            oldPartyNetChange = -oldTx.balanceAmount;
-          } else if (oldTx.category == TransactionCategory.payment_paid) {
-            oldPartyNetChange = oldTx.amount;
+        if (newTx.category == TransactionCategory.payment_received ||
+            newTx.category == TransactionCategory.payment_paid) {
+          if (newTx.partyType == PartyType.customer) {
+            final ref = _service.customers.doc(newTx.partyId);
+            final snap = await tx.get(ref);
+            if (snap.exists) tx.update(ref, {'balance': snap.data()!.balance - newTx.amount});
+          } else {
+            final ref = _service.suppliers.doc(newTx.partyId);
+            final snap = await tx.get(ref);
+            if (snap.exists) tx.update(ref, {'balance': snap.data()!.balance - newTx.amount});
           }
         }
       }
 
-      double newPartyNetChange = 0;
-      if (newPartySnap != null && newPartySnap.exists) {
-        if (newTx.partyType == PartyType.customer) {
-          if (newTx.category == TransactionCategory.sale && newTx.isCredit) {
-            newPartyNetChange = newTx.balanceAmount;
-          } else if (newTx.category == TransactionCategory.payment_received) {
-            newPartyNetChange = -newTx.amount;
-          }
-        } else {
-          if (newTx.category == TransactionCategory.purchase &&
-              newTx.isCredit) {
-            newPartyNetChange = newTx.balanceAmount;
-          } else if (newTx.category == TransactionCategory.payment_paid) {
-            newPartyNetChange = -newTx.amount;
+      // B. Credit Party Apply
+      final newCreditId = newTx.creditPartyId ?? newTx.partyId;
+      final newCreditType = newTx.creditPartyType ?? newTx.partyType;
+      if (newCreditId != null && newCreditType != null && newTx.isCredit) {
+        if (newTx.category != TransactionCategory.payment_received &&
+            newTx.category != TransactionCategory.payment_paid) {
+          if (newCreditType == PartyType.customer) {
+            final ref = _service.customers.doc(newCreditId);
+            final snap = await tx.get(ref);
+            if (snap.exists) tx.update(ref, {'balance': snap.data()!.balance + newTx.balanceAmount});
+          } else {
+            final ref = _service.suppliers.doc(newCreditId);
+            final snap = await tx.get(ref);
+            if (snap.exists) tx.update(ref, {'balance': snap.data()!.balance + newTx.balanceAmount});
           }
         }
       }
 
-      // 3. Writes
-      if (oldPartyRef != null &&
-          oldPartySnap != null &&
-          oldPartySnap.exists &&
-          oldPartyNetChange != 0) {
-        final currentBal = oldPartySnap.data()?.balance ?? 0.0;
-        tx.update(oldPartyRef, {'balance': currentBal + oldPartyNetChange});
-      }
-
-      if (newPartyRef != null &&
-          newPartySnap != null &&
-          newPartySnap.exists &&
-          newPartyNetChange != 0) {
-        if (newPartyRef == oldPartyRef) {
-          final currentBal = oldPartySnap!.data()?.balance ?? 0.0;
-          tx.update(newPartyRef,
-              {'balance': currentBal + oldPartyNetChange + newPartyNetChange});
-        } else {
-          final currentBal = newPartySnap.data()?.balance ?? 0.0;
-          tx.update(newPartyRef, {'balance': currentBal + newPartyNetChange});
-        }
-      }
-
+      // 3. Update the transaction record
       final txRef = _service.transactions.doc(newTx.id);
       tx.set(txRef, newTx);
     });
@@ -157,52 +149,57 @@ class TransactionRepository {
 
   Future<void> deleteTransaction(TransactionModel transaction) async {
     await _service.firestore.runTransaction((tx) async {
-      // 1. Reverse Party Balance update (Requires READS)
+      // 1. Reverse Party Balances if applicable (Requires READS)
+      
+      // A. Main Party Reverse
       if (transaction.partyId != null && transaction.partyType != null) {
-        if (transaction.partyType == PartyType.customer) {
-          final customerRef = _service.customers.doc(transaction.partyId);
-          final customerSnap = await tx.get(customerRef);
-
-          if (customerSnap.exists) {
-            final customer = customerSnap.data()!;
-            double balanceChange = 0;
-
-            if (transaction.category == TransactionCategory.sale &&
-                transaction.isCredit) {
-              balanceChange = -transaction.balanceAmount;
-            } else if (transaction.category ==
-                TransactionCategory.payment_received) {
-              balanceChange = transaction.amount;
+        if (transaction.category == TransactionCategory.payment_received ||
+            transaction.category == TransactionCategory.payment_paid) {
+          
+          if (transaction.partyType == PartyType.customer) {
+            final partyRef = _service.customers.doc(transaction.partyId);
+            final partySnap = await tx.get(partyRef);
+            if (partySnap.exists) {
+              final party = partySnap.data()!;
+              tx.update(partyRef, {'balance': party.balance + transaction.amount});
             }
-
-            if (balanceChange != 0) {
-              tx.update(customerRef,
-                  {'balance': customer.balance + balanceChange});
-            }
-          }
-        } else if (transaction.partyType == PartyType.supplier) {
-          final supplierRef = _service.suppliers.doc(transaction.partyId);
-          final supplierSnap = await tx.get(supplierRef);
-
-          if (supplierSnap.exists) {
-            final supplier = supplierSnap.data()!;
-            double balanceChange = 0;
-
-            if (transaction.category == TransactionCategory.purchase &&
-                transaction.isCredit) {
-              balanceChange = -transaction.balanceAmount;
-            } else if (transaction.category ==
-                TransactionCategory.payment_paid) {
-              balanceChange = transaction.amount;
-            }
-
-            if (balanceChange != 0) {
-              tx.update(supplierRef,
-                  {'balance': supplier.balance + balanceChange});
+          } else {
+            final partyRef = _service.suppliers.doc(transaction.partyId);
+            final partySnap = await tx.get(partyRef);
+            if (partySnap.exists) {
+              final party = partySnap.data()!;
+              tx.update(partyRef, {'balance': party.balance + transaction.amount});
             }
           }
         }
       }
+
+      // B. Credit Party Reverse
+      final creditPartyId = transaction.creditPartyId ?? transaction.partyId;
+      final creditPartyType = transaction.creditPartyType ?? transaction.partyType;
+
+      if (creditPartyId != null && creditPartyType != null && transaction.isCredit) {
+        if (transaction.category != TransactionCategory.payment_received &&
+            transaction.category != TransactionCategory.payment_paid) {
+          
+          if (creditPartyType == PartyType.customer) {
+            final creditPartyRef = _service.customers.doc(creditPartyId);
+            final creditPartySnap = await tx.get(creditPartyRef);
+            if (creditPartySnap.exists) {
+              final creditParty = creditPartySnap.data()!;
+              tx.update(creditPartyRef, {'balance': creditParty.balance - transaction.balanceAmount});
+            }
+          } else {
+            final creditPartyRef = _service.suppliers.doc(creditPartyId);
+            final creditPartySnap = await tx.get(creditPartyRef);
+            if (creditPartySnap.exists) {
+              final creditParty = creditPartySnap.data()!;
+              tx.update(creditPartyRef, {'balance': creditParty.balance - transaction.balanceAmount});
+            }
+          }
+        }
+      }
+
 
       // 2. Delete the transaction (Requires WRITE)
       final txRef = _service.transactions.doc(transaction.id);

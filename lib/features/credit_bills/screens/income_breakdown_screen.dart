@@ -3,7 +3,9 @@ import 'package:provider/provider.dart';
 import '../providers/transaction_provider.dart';
 import '../models/transaction.dart';
 
-class IncomeBreakdownScreen extends StatelessWidget {
+import '../models/payment_type.dart';
+
+class IncomeBreakdownScreen extends StatefulWidget {
   final DateTime startDate;
   final DateTime endDate;
 
@@ -14,11 +16,22 @@ class IncomeBreakdownScreen extends StatelessWidget {
   });
 
   @override
+  State<IncomeBreakdownScreen> createState() => _IncomeBreakdownScreenState();
+}
+
+class _IncomeBreakdownScreenState extends State<IncomeBreakdownScreen> {
+  PaymentType? _selectedPaymentType;
+
+  @override
   Widget build(BuildContext context) {
     final txProvider = context.watch<TransactionProvider>();
     final breakdown = txProvider.getCategoryBreakdown(
-        TransactionType.IN, startDate, endDate);
-    
+      TransactionType.IN,
+      widget.startDate,
+      widget.endDate,
+      paymentType: _selectedPaymentType,
+    );
+
     final totalIncome = breakdown.values.fold(0.0, (sum, val) => sum + val);
 
     return Scaffold(
@@ -28,19 +41,71 @@ class IncomeBreakdownScreen extends StatelessWidget {
         backgroundColor: Colors.green.shade700,
         foregroundColor: Colors.white,
       ),
-      body: breakdown.isEmpty
-          ? const Center(child: Text('No income recorded for this period'))
-          : ListView.builder(
-              padding: const EdgeInsets.all(20),
-              itemCount: breakdown.length,
-              itemBuilder: (context, index) {
-                final category = breakdown.keys.elementAt(index);
-                final amount = breakdown[category]!;
-                final percentage = totalIncome > 0 ? (amount / totalIncome) : 0.0;
+      body: Column(
+        children: [
+          _buildPaymentTypeFilter(),
+          Expanded(
+            child: breakdown.isEmpty
+                ? const Center(child: Text('No income recorded for this filter'))
+                : ListView.builder(
+                    padding: const EdgeInsets.all(20),
+                    itemCount: breakdown.length,
+                    itemBuilder: (context, index) {
+                      final category = breakdown.keys.elementAt(index);
+                      final amount = breakdown[category]!;
+                      final percentage =
+                          totalIncome > 0 ? (amount / totalIncome) : 0.0;
 
-                return _buildCategoryTile(category, amount, percentage);
+                      return _buildCategoryTile(category, amount, percentage);
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPaymentTypeFilter() {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
+      ),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Row(
+          children: [
+            FilterChip(
+              label: const Text('All'),
+              selected: _selectedPaymentType == null,
+              onSelected: (selected) {
+                if (selected) setState(() => _selectedPaymentType = null);
               },
+              selectedColor: Colors.green.shade100,
+              checkmarkColor: Colors.green,
             ),
+            const SizedBox(width: 8),
+            ...PaymentType.values.map((type) {
+              return Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: FilterChip(
+                  label: Text(type.name.toUpperCase()),
+                  selected: _selectedPaymentType == type,
+                  onSelected: (selected) {
+                    setState(() {
+                      _selectedPaymentType = selected ? type : null;
+                    });
+                  },
+                  selectedColor: Colors.green.shade100,
+                  checkmarkColor: Colors.green,
+                ),
+              );
+            }),
+          ],
+        ),
+      ),
     );
   }
 
@@ -73,8 +138,8 @@ class IncomeBreakdownScreen extends StatelessWidget {
             children: [
               Text(
                 categoryName,
-                style: const TextStyle(
-                    fontWeight: FontWeight.bold, fontSize: 16),
+                style:
+                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
               Text(
                 '₹${amount.toStringAsFixed(1)}',

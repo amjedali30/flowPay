@@ -49,7 +49,7 @@ class _AddSupplierScreenState extends State<AddSupplierScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFB),
       appBar: AppBar(
-        title: const Text('Add New Supplier',
+        title: const Text('Add Person / Supplier',
             style: TextStyle(fontWeight: FontWeight.bold)),
         centerTitle: true,
         elevation: 0,
@@ -65,7 +65,7 @@ class _AddSupplierScreenState extends State<AddSupplierScreen> {
             children: [
               const SizedBox(height: 8),
               const Text(
-                'Supplier Information',
+                'Person / Supplier Information',
                 style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -73,13 +73,13 @@ class _AddSupplierScreenState extends State<AddSupplierScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Enter the details of the new supplier below.',
+                'Enter the details of the shop-related person or supplier.',
                 style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
               ),
               const SizedBox(height: 32),
               TextFormField(
                 decoration: InputDecoration(
-                  labelText: 'Supplier Name',
+                  labelText: 'Name',
                   prefixIcon: const Icon(Icons.business_outlined),
                   filled: true,
                   fillColor: Colors.white,
@@ -134,7 +134,7 @@ class _AddSupplierScreenState extends State<AddSupplierScreen> {
                           elevation: 0,
                         ),
                         child: const Text(
-                          'Save Supplier',
+                          'Save Details',
                           style: TextStyle(
                               fontSize: 18, fontWeight: FontWeight.bold),
                         ),

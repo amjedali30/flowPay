@@ -10,12 +10,15 @@ _$TransactionModelImpl _$$TransactionModelImplFromJson(
         Map<String, dynamic> json) =>
     _$TransactionModelImpl(
       id: json['id'] as String,
-      type: _typeFromJson(json['type']),
-      category: _categoryFromJson(json['category']),
+      type: const TransactionTypeConverter().fromJson(json['type']),
+      category: const TransactionCategoryConverter().fromJson(json['category']),
       amount: (json['amount'] as num).toDouble(),
       paymentType: $enumDecode(_$PaymentTypeEnumMap, json['paymentType']),
       partyId: json['partyId'] as String?,
       partyType: $enumDecodeNullable(_$PartyTypeEnumMap, json['partyType']),
+      creditPartyId: json['creditPartyId'] as String?,
+      creditPartyType:
+          $enumDecodeNullable(_$PartyTypeEnumMap, json['creditPartyType']),
       totalAmount: (json['totalAmount'] as num?)?.toDouble() ?? 0.0,
       paidAmount: (json['paidAmount'] as num?)?.toDouble() ?? 0.0,
       balanceAmount: (json['balanceAmount'] as num?)?.toDouble() ?? 0.0,
@@ -29,12 +32,15 @@ Map<String, dynamic> _$$TransactionModelImplToJson(
         _$TransactionModelImpl instance) =>
     <String, dynamic>{
       'id': instance.id,
-      'type': _$TransactionTypeEnumMap[instance.type]!,
-      'category': _$TransactionCategoryEnumMap[instance.category]!,
+      'type': const TransactionTypeConverter().toJson(instance.type),
+      'category':
+          const TransactionCategoryConverter().toJson(instance.category),
       'amount': instance.amount,
       'paymentType': _$PaymentTypeEnumMap[instance.paymentType]!,
       'partyId': instance.partyId,
       'partyType': _$PartyTypeEnumMap[instance.partyType],
+      'creditPartyId': instance.creditPartyId,
+      'creditPartyType': _$PartyTypeEnumMap[instance.creditPartyType],
       'totalAmount': instance.totalAmount,
       'paidAmount': instance.paidAmount,
       'balanceAmount': instance.balanceAmount,
@@ -54,19 +60,4 @@ const _$PaymentTypeEnumMap = {
 const _$PartyTypeEnumMap = {
   PartyType.customer: 'customer',
   PartyType.supplier: 'supplier',
-};
-
-const _$TransactionTypeEnumMap = {
-  TransactionType.IN: 'IN',
-  TransactionType.OUT: 'OUT',
-};
-
-const _$TransactionCategoryEnumMap = {
-  TransactionCategory.sale: 'sale',
-  TransactionCategory.payment_received: 'payment_received',
-  TransactionCategory.purchase: 'purchase',
-  TransactionCategory.payment_paid: 'payment_paid',
-  TransactionCategory.expense: 'expense',
-  TransactionCategory.salary: 'salary',
-  TransactionCategory.other: 'other',
 };

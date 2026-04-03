@@ -142,12 +142,13 @@ class TransactionProvider with ChangeNotifier {
   }
 
   Map<TransactionCategory, double> getCategoryBreakdown(
-      TransactionType type, DateTime start, DateTime end) {
+      TransactionType type, DateTime start, DateTime end, {PaymentType? paymentType}) {
     final s = DateTime(start.year, start.month, start.day);
     final e = DateTime(end.year, end.month, end.day, 23, 59, 59);
 
     final filtered = _transactions.where((tx) =>
         tx.type == type &&
+        (paymentType == null || tx.paymentType == paymentType) &&
         tx.date.isAfter(s.subtract(const Duration(seconds: 1))) &&
         tx.date.isBefore(e.add(const Duration(seconds: 1))));
 

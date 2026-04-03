@@ -34,6 +34,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
   String? _selectedPartyId;
   String? _selectedPartyName;
+  String? _selectedCreditPartyId;
+  String? _selectedCreditPartyName;
 
   @override
   void initState() {
@@ -61,7 +63,9 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   }
 
   void _updatePaidAmount() {
-    if (_paymentType != PaymentType.credit) {
+    // We no longer force paidAmount = totalAmount for non-credit types
+    // but we can still default it if it's empty or was previously equal.
+    if (_paymentType != PaymentType.credit && _selectedPartyId == null) {
       _paidAmountController.text = _totalAmountController.text;
     }
   }
@@ -106,6 +110,10 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
               _buildPaymentTypeSelector(),
               const SizedBox(height: 24),
               _buildAmountFields(),
+              if (_hasBalance() && _type == TransactionType.OUT) ...[
+                const SizedBox(height: 24),
+                _buildCreditPartySelector(customerProvider, supplierProvider),
+              ],
               const SizedBox(height: 24),
               _buildDatePicker(),
               const SizedBox(height: 24),
@@ -168,11 +176,13 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     List<TransactionCategory> categories = _type == TransactionType.IN
         ? [
             TransactionCategory.sale,
+            TransactionCategory.credit_sale,
             TransactionCategory.payment_received,
             TransactionCategory.other
           ]
         : [
             TransactionCategory.purchase,
+            TransactionCategory.credit_purchase,
             TransactionCategory.payment_paid,
             TransactionCategory.expense,
             TransactionCategory.salary,
@@ -203,26 +213,49 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   }
 
   bool _categoryRequiresParty() {
+    // If there is a balance, we ALWAYS require a party
+    final total = double.tryParse(_totalAmountController.text) ?? 0;
+    final paid = double.tryParse(_paidAmountController.text) ?? 0;
+    if ((total - paid).abs() > 0.01) return true;
+
     return [
-      TransactionCategory.sale,
-      TransactionCategory.purchase,
+      TransactionCategory.credit_sale,
+      TransactionCategory.credit_purchase,
+      TransactionCategory.payment_received,
+      TransactionCategory.payment_paid,
+      TransactionCategory.expense,
+      TransactionCategory.salary,
+      TransactionCategory.other,
+    ].contains(_category);
+  }
+
+  bool _isPartyOptional() {
+    final total = double.tryParse(_totalAmountController.text) ?? 0;
+    final paid = double.tryParse(_paidAmountController.text) ?? 0;
+    if ((total - paid).abs() > 0.01) return false;
+
+    return _category == TransactionCategory.sale;
+  }
+
+  bool _showSupplierPicker() {
+    return _type == TransactionType.OUT;
+  }
+
+  bool _showCustomerPicker() {
+    return _type == TransactionType.IN;
+  }
+
+  bool _isPaymentCategory() {
+    return [
       TransactionCategory.payment_received,
       TransactionCategory.payment_paid
     ].contains(_category);
   }
 
-  bool _isPartyOptional() {
-    return _category == TransactionCategory.sale;
-  }
-
-  bool _showSupplierPicker() {
-    return [TransactionCategory.purchase, TransactionCategory.payment_paid]
-        .contains(_category);
-  }
-
-  bool _showCustomerPicker() {
-    return [TransactionCategory.sale, TransactionCategory.payment_received]
-        .contains(_category);
+  bool _hasBalance() {
+    final total = double.tryParse(_totalAmountController.text) ?? 0;
+    final paid = double.tryParse(_paidAmountController.text) ?? 0;
+    return (total - paid).abs() > 0.01;
   }
 
   Widget _buildPartySelector(CustomerProvider cp, SupplierProvider sp) {
@@ -284,7 +317,69 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     );
   }
 
-  void _showPartyPicker(List<dynamic> parties, bool isCustomer) {
+  Widget _buildCreditPartySelector(CustomerProvider cp, SupplierProvider sp) {
+    bool isCustomer = _type == TransactionType.IN;
+    String label = 'Assign Balance To (Optional)';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        const SizedBox(height: 4),
+        Text('If different from the main party above.',
+            style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+        const SizedBox(height: 8),
+        InkWell(
+          onTap: () => _showPartyPicker(
+              isCustomer ? cp.customers : sp.suppliers, isCustomer,
+              isCreditParty: true),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey.shade400),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                    isCustomer
+                        ? Icons.person_outline
+                        : Icons.local_shipping_outlined,
+                    color: Colors.orange.shade700),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    _selectedCreditPartyName ?? 'Same as main party',
+                    style: TextStyle(
+                      color: _selectedCreditPartyName == null
+                          ? Colors.grey
+                          : Colors.black,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+                if (_selectedCreditPartyId != null)
+                  IconButton(
+                    icon: const Icon(Icons.clear, size: 20),
+                    onPressed: () {
+                      setState(() {
+                        _selectedCreditPartyId = null;
+                        _selectedCreditPartyName = null;
+                      });
+                    },
+                  ),
+                const Icon(Icons.arrow_drop_down),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showPartyPicker(List<dynamic> parties, bool isCustomer,
+      {bool isCreditParty = false}) {
     String searchQuery = '';
     showModalBottomSheet(
       context: context,
@@ -336,8 +431,13 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                                 subtitle: Text(party.phone),
                                 onTap: () {
                                   setState(() {
-                                    _selectedPartyId = party.id;
-                                    _selectedPartyName = party.name;
+                                    if (isCreditParty) {
+                                      _selectedCreditPartyId = party.id;
+                                      _selectedCreditPartyName = party.name;
+                                    } else {
+                                      _selectedPartyId = party.id;
+                                      _selectedPartyName = party.name;
+                                    }
                                   });
                                   Navigator.pop(context);
                                 },
@@ -361,7 +461,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
           child: TextFormField(
             controller: _totalAmountController,
             decoration: InputDecoration(
-              labelText: 'Total Amount',
+              labelText: _isPaymentCategory() ? 'Amount' : 'Total Bill Amount',
               prefixText: '₹',
               border:
                   OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -371,21 +471,34 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 val == null || val.isEmpty ? 'Enter amount' : null,
           ),
         ),
-        if (_categoryRequiresParty()) ...[
+        if (_categoryRequiresParty() && !_isPaymentCategory()) ...[
           const SizedBox(width: 16),
           Expanded(
             child: TextFormField(
               controller: _paidAmountController,
               decoration: InputDecoration(
-                labelText: 'Paid Amount',
+                labelText: 'Amount Paid Now',
+                hintText: 'How much are you paying today?',
                 prefixText: '₹',
                 border:
                     OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
               keyboardType: TextInputType.number,
-              readOnly: _paymentType != PaymentType.credit,
-              validator: (val) =>
-                  val == null || val.isEmpty ? 'Enter paid amount' : null,
+              // readOnly: _paymentType != PaymentType.credit, // No longer read-only
+              onChanged: (val) {
+                // If they pay more than total, maybe cap it?
+                // For now just let it be, but could add validation.
+                setState(() {
+                  _hasBalance();
+                });
+              },
+              validator: (val) {
+                if (val == null || val.isEmpty) return 'Enter amount';
+                final total = double.tryParse(_totalAmountController.text) ?? 0;
+                final paid = double.tryParse(val) ?? 0;
+                if (paid > total) return 'Cannot pay more than total';
+                return null;
+              },
             ),
           ),
         ],
@@ -397,8 +510,11 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Payment Mode',
+        const Text('Payment Type',
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        const SizedBox(height: 4),
+        Text('Select Credit if you are paying partially or later.',
+            style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
@@ -415,9 +531,9 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 if (selected) {
                   setState(() {
                     _paymentType = type;
-                    if (type != PaymentType.credit) {
-                      _paidAmountController.text = _totalAmountController.text;
-                    }
+                    // if (type != PaymentType.credit) {
+                    //   _paidAmountController.text = _totalAmountController.text;
+                    // }
                   });
                 }
               },
@@ -493,53 +609,60 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
               : 'Please select a supplier')));
       return;
     }
-
-    final total = double.parse(_totalAmountController.text);
-    final paid = double.parse(_paidAmountController.text);
-
-    final tx = TransactionModel(
-      id: widget.existingTransaction?.id ?? const Uuid().v4(),
-      type: _type,
-      category: _category,
-      amount: total,
-      paymentType: _paymentType,
-      partyId: _selectedPartyId,
-      partyType: _categoryRequiresParty()
-          ? ([TransactionCategory.sale, TransactionCategory.payment_received]
-                  .contains(_category)
-              ? PartyType.customer
-              : PartyType.supplier)
-          : null,
-      totalAmount: total,
-      paidAmount: paid,
-      balanceAmount: total - paid,
-      isCredit: _paymentType == PaymentType.credit || (total - paid) > 0,
-      date: _selectedDate,
-      note: _noteController.text,
-      createdAt: widget.existingTransaction?.createdAt ?? DateTime.now(),
-    );
-
     try {
-      if (widget.existingTransaction != null) {
-        await context
-            .read<TransactionProvider>()
-            .updateTransaction(widget.existingTransaction!, tx);
-      } else {
-        await context.read<TransactionProvider>().addTransaction(tx);
-      }
+      final total = double.tryParse(_totalAmountController.text) ?? 0.0;
+      final paid = double.tryParse(_paidAmountController.text) ?? total;
+      final tx = TransactionModel(
+        id: widget.existingTransaction?.id ?? const Uuid().v4(),
+        type: _type,
+        category: _category,
+        amount: total,
+        paymentType: _paymentType,
+        partyId: _selectedPartyId,
+        partyType: _categoryRequiresParty()
+            ? (_type == TransactionType.IN ? PartyType.customer : PartyType.supplier)
+            : null,
+        totalAmount: total,
+        paidAmount: paid,
+        balanceAmount: total - paid,
+        isCredit: _paymentType == PaymentType.credit || (total - paid) > 0,
+        creditPartyId: _type == TransactionType.IN 
+            ? _selectedPartyId 
+            : (_selectedCreditPartyId ?? _selectedPartyId),
+        creditPartyType: _type == TransactionType.IN
+            ? (_selectedPartyId != null ? PartyType.customer : null)
+            : (_selectedCreditPartyId != null
+                ? PartyType.supplier // For OUT, credit party is usually supplier
+                : null), 
+        date: _selectedDate,
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(widget.existingTransaction != null
-                ? 'Transaction updated successfully'
-                : 'Transaction saved successfully')));
-        Navigator.pop(context);
+        note: _noteController.text,
+        createdAt: widget.existingTransaction?.createdAt ?? DateTime.now(),
+      );
+      try {
+        if (widget.existingTransaction != null) {
+          await context
+              .read<TransactionProvider>()
+              .updateTransaction(widget.existingTransaction!, tx);
+        } else {
+          await context.read<TransactionProvider>().addTransaction(tx);
+        }
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(widget.existingTransaction != null
+                  ? 'Transaction updated successfully'
+                  : 'Transaction saved successfully')));
+          Navigator.pop(context);
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text('Error: $e')));
+        }
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Error: $e')));
-      }
+      debugPrint(e.toString());
     }
   }
 }
